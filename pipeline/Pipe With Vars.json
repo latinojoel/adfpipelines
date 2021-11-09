@@ -1,0 +1,45 @@
+{
+	"name": "Pipe With Vars",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set Variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "myarray",
+					"value": [
+						"abc"
+					]
+				}
+			},
+			{
+				"name": "Append Variable1",
+				"type": "AppendVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "myarray",
+					"value": "abc"
+				}
+			}
+		],
+		"policy": {
+			"cancelAfter": {
+				"duration": "30.00:00:00"
+			}
+		},
+		"variables": {
+			"myarray": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "PipelineController"
+		},
+		"annotations": [],
+		"lastPublishTime": "2019-12-06T09:37:05Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
