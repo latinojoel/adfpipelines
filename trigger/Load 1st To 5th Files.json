@@ -1,0 +1,25 @@
+{
+    "name": "Load 1st To 5th Files",
+    "properties": {
+        "annotations": [],
+        "runtimeState": "Started",
+        "pipelines": [
+            {
+                "pipelineReference": {
+                    "referenceName": "PL_LOAD_1ST_TO_5TH_MASTER",
+                    "type": "PipelineReference"
+                }
+            }
+        ],
+        "type": "ScheduleTrigger",
+        "typeProperties": {
+            "recurrence": {
+                "frequency": "Day",
+                "interval": 1,
+                "startTime": "2021-09-16T05:00:00",
+                "endTime": "2021-09-16T21:22:00",
+                "timeZone": "Eastern Standard Time"
+            }
+        }
+    }
+}

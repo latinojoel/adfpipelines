@@ -1,0 +1,32 @@
+{
+    "name": "SourceMedLargeSink",
+    "properties": {
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ablob_SOURCE_MedLarge_FILENAMES",
+                        "type": "DatasetReference"
+                    },
+                    "name": "source1"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "AzureSQL_DB_DESTINATION",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sink1"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "DerivedColumn1"
+                }
+            ],
+            "script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tmultiLineRow: true,\n\tdateFormats: ['yyyy-MM-dd'],\n\ttimestampFormats: ['yyyy-MM-dd'],\n\tpartitionBy('roundRobin', 10)) ~> source1\nsource1 derive(each(match(endsWith(name,'_HOURS')), $$ = toInteger(abs($$))),\n\t\teach(match(endsWith(name,'_SALARY')), $$ = toInteger(abs($$))),\n\t\teach(match(endsWith(name,'_PCT')), $$ = toInteger(abs($$))),\n\t\teach(match(endsWith(name,'_POINTS')), $$ = toInteger(abs($$))),\n\t\teach(match(endsWith(name,'_PERCENT')), $$ = toInteger(abs($$))),\n\t\teach(match(endsWith(name,'_RATE')), $$ = toInteger(abs($$))),\n\t\teach(match(endsWith(name,'_TOTAL')), $$ = toInteger(abs($$))),\n\tpartitionBy('roundRobin', 10)) ~> DerivedColumn1\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tstagingSchemaName: 'sysadm',\n\tdateFormat:'yyyy-MM-dd',\n\ttimestampFormat:'yyyy-MM-dd',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\teach(match(true()))\n\t),\n\tpartitionBy('roundRobin', 10)) ~> sink1"
+        }
+    }
+}

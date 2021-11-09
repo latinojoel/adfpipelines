@@ -1,0 +1,21 @@
+{
+    "name": "IR-Azure-Mem-Optimized-32",
+    "properties": {
+        "type": "Managed",
+        "typeProperties": {
+            "computeProperties": {
+                "location": "East US",
+                "dataFlowProperties": {
+                    "computeType": "MemoryOptimized",
+                    "coreCount": 48,
+                    "timeToLive": 45,
+                    "cleanup": true
+                }
+            }
+        },
+        "managedVirtualNetwork": {
+            "type": "ManagedVirtualNetworkReference",
+            "referenceName": "default"
+        }
+    }
+}

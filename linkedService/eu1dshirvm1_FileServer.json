@@ -1,0 +1,17 @@
+{
+    "name": "eu1dshirvm1_FileServer",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "FileServer",
+        "typeProperties": {
+            "host": "\\\\eu1dshirvm1\\ETLFiles",
+            "userId": "admin_kavery@cancer.org",
+            "encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIwZTk2ZWY3Yy0zNTYyLTRlYzUtODgzMi1kYmU3N2QyMWQyYjYiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+        },
+        "connectVia": {
+            "referenceName": "eu1dshirvm1",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

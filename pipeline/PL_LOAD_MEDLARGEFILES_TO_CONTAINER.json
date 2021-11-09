@@ -1,0 +1,187 @@
+{
+    "name": "PL_LOAD_MEDLARGEFILES_TO_CONTAINER",
+    "properties": {
+        "activities": [
+            {
+                "name": "CopyMediumLargeFiles",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "storeSettings": {
+                            "type": "FileServerReadSettings",
+                            "fileListPath": "Files4thToCopy.txt",
+                            "enablePartitionDiscovery": false
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextReadSettings"
+                        }
+                    },
+                    "sink": {
+                        "type": "DelimitedTextSink",
+                        "storeSettings": {
+                            "type": "AzureBlobStorageWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextWriteSettings",
+                            "quoteAllText": true,
+                            "fileExtension": ".csv"
+                        }
+                    },
+                    "enableStaging": false,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                            "allowDataTruncation": true,
+                            "treatBooleanAsNumber": false
+                        }
+                    }
+                },
+                "inputs": [
+                    {
+                        "referenceName": "eu1dshirvm_csvfiles",
+                        "type": "DatasetReference"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "ablob_ADP_MedLarge_CSVFILE_SOURCE_DS",
+                        "type": "DatasetReference"
+                    }
+                ]
+            },
+            {
+                "name": "SetSucessV",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "CopyMediumLargeFiles",
+                        "dependencyConditions": [
+                            "Succeeded",
+                            "Failed"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "SuccessMessage",
+                    "value": {
+                        "value": "@string(activity('CopyMediumLargeFiles').output.filesRead)",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "SetErrorV",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "CopyMediumLargeFiles",
+                        "dependencyConditions": [
+                            "Failed"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "ErrorMessage",
+                    "value": {
+                        "value": "@activity('CopyMediumLargeFiles').Error.Message",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "SuccessEmail",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "SetSucessV",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "https://prod-31.eastus.logic.azure.com:443/workflows/d7e73f900b0641a3b5ec3a5ee3d8eb52/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Te9kLpaLBIr3G4rDVGf97moHTgxWusSXUtWTLcnbOt8",
+                        "type": "Expression"
+                    },
+                    "connectVia": {
+                        "referenceName": "AutoResolveIntegrationRuntime",
+                        "type": "IntegrationRuntimeReference"
+                    },
+                    "method": "POST",
+                    "body": {
+                        "value": "{\n   \"DataFactoryName\": \"@{pipeline().DataFactory}\",\n   \"PipelineName\": \"@{pipeline().Pipeline}\",\n   \"Message\": \"@{replace(replace(variables('SuccessMessage'),'\\','\\\\'),'\"','''')}\",\n    \"Time\":\"@{substring(convertFromUtc(utcnow(),'Eastern Standard Time'),0,16)}\",\n    \"Subject\": \"Pipeline Message!\"\n}\n\n",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "FailureEmail",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "SetErrorV",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "https://prod-81.eastus.logic.azure.com:443/workflows/d2beec7d1dde4fffaa3252398262915b/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=rpXsaJMkcuPsDoVRrtxbevPFSFXBuchZeNLaKmtKp5Y",
+                        "type": "Expression"
+                    },
+                    "connectVia": {
+                        "referenceName": "AutoResolveIntegrationRuntime",
+                        "type": "IntegrationRuntimeReference"
+                    },
+                    "method": "POST",
+                    "body": {
+                        "value": "{\n   \"DataFactoryName\": \"@{pipeline().DataFactory}\",\n   \"PipelineName\": \"@{pipeline().Pipeline}\",\n   \"ErrorMessage\": \"@{replace(replace(variables('ErrorMessage'),'\\','\\\\'),'\"','''')}\",\n     \"Time\":\"@{substring(convertFromUtc(utcnow(),'Eastern Standard Time'),0,16)}\",\n    \"Subject\": \"Pipeline Message!\"\n}\n\n\n",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "variables": {
+            "ErrorMessage": {
+                "type": "String"
+            },
+            "SuccessMessage": {
+                "type": "String"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-09-14T12:22:04Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

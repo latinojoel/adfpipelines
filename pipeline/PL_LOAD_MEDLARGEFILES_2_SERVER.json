@@ -1,0 +1,275 @@
+{
+    "name": "PL_LOAD_MEDLARGEFILES_2_SERVER",
+    "properties": {
+        "activities": [
+            {
+                "name": "Get Metadata",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "ablob_ADP_MedLarge_CSVFILE_SOURCE_DS",
+                        "type": "DatasetReference"
+                    },
+                    "fieldList": [
+                        "childItems"
+                    ],
+                    "storeSettings": {
+                        "type": "AzureBlobStorageReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                        "type": "DelimitedTextReadSettings"
+                    }
+                }
+            },
+            {
+                "name": "ForEach1",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "Get Metadata",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Get Metadata').output.childitems",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "Get Metadata1",
+                            "type": "GetMetadata",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "7.00:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "dataset": {
+                                    "referenceName": "ablob_SOURCE_MedLarge_FILENAMES",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "FileName": {
+                                            "value": "@item().name",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                "fieldList": [
+                                    "size"
+                                ],
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageReadSettings",
+                                    "recursive": true,
+                                    "enablePartitionDiscovery": false
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            }
+                        },
+                        {
+                            "name": "If Condition1",
+                            "type": "IfCondition",
+                            "dependsOn": [
+                                {
+                                    "activity": "Get Metadata1",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@greater(activity('Get Metadata1').output.size,0)",
+                                    "type": "Expression"
+                                },
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "SourceMedLargeSink",
+                                        "type": "ExecuteDataFlow",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "timeout": "1.00:00:00",
+                                            "retry": 1,
+                                            "retryIntervalInSeconds": 45,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "dataflow": {
+                                                "referenceName": "SourceMedLargeSink",
+                                                "type": "DataFlowReference",
+                                                "datasetParameters": {
+                                                    "source1": {
+                                                        "FileName": {
+                                                            "value": "@item().name",
+                                                            "type": "Expression"
+                                                        }
+                                                    },
+                                                    "sink1": {
+                                                        "SchemaName": "sysadm",
+                                                        "TableName": {
+                                                            "value": "@replace(split(item().name,'.')[0],'acsp_','')",
+                                                            "type": "Expression"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "integrationRuntime": {
+                                                "referenceName": "IR-Azure-Mem-Optimized-32",
+                                                "type": "IntegrationRuntimeReference"
+                                            },
+                                            "traceLevel": "Fine"
+                                        }
+                                    },
+                                    {
+                                        "name": "Set ErrorV",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "SourceMedLargeSink",
+                                                "dependencyConditions": [
+                                                    "Failed"
+                                                ]
+                                            }
+                                        ],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "ErrorMessage",
+                                            "value": {
+                                                "value": "@string(activity('SourceMedLargeSink').Error.Message)",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "Send Error Email",
+                                        "type": "WebActivity",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "Set ErrorV",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "timeout": "7.00:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "url": {
+                                                "value": "https://prod-81.eastus.logic.azure.com:443/workflows/d2beec7d1dde4fffaa3252398262915b/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=rpXsaJMkcuPsDoVRrtxbevPFSFXBuchZeNLaKmtKp5Y",
+                                                "type": "Expression"
+                                            },
+                                            "connectVia": {
+                                                "referenceName": "AutoResolveIntegrationRuntime",
+                                                "type": "IntegrationRuntimeReference"
+                                            },
+                                            "method": "POST",
+                                            "body": {
+                                                "value": "{\n   \"DataFactoryName\": \"@{pipeline().DataFactory}\",\n   \"PipelineName\": \"@{pipeline().Pipeline}\",\n   \"ErrorMessage\": \"@{replace(replace(variables('ErrorMessage'),'\\','\\\\'),'\"','''')}\",\n    \"Time\":\"@{utcnow()}\",\n    \"Subject\": \"Pipeline Error Message!\"\n}\n",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Get Table Names",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "ForEach1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "SuccessMessage",
+                    "value": {
+                        "value": "@string(activity('Get Metadata').output)",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Success Email",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "Get Table Names",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "https://prod-31.eastus.logic.azure.com:443/workflows/d7e73f900b0641a3b5ec3a5ee3d8eb52/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Te9kLpaLBIr3G4rDVGf97moHTgxWusSXUtWTLcnbOt8",
+                        "type": "Expression"
+                    },
+                    "connectVia": {
+                        "referenceName": "AutoResolveIntegrationRuntime",
+                        "type": "IntegrationRuntimeReference"
+                    },
+                    "method": "POST",
+                    "body": {
+                        "value": "{\n   \"DataFactoryName\": \"@{pipeline().DataFactory}\",\n   \"PipelineName\": \"@{pipeline().Pipeline}\",\n   \"Message\": \"@{replace(replace(variables('SuccessMessage'),'\\','\\\\'),'\"','''')}\",\n    \"Time\":\"@{substring(convertFromUtc(utcnow(),'Eastern Standard Time'),0,16)}\",\n    \"Subject\": \"Pipeline Message!\"\n}",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "variables": {
+            "SuccessMessage": {
+                "type": "String"
+            },
+            "ErrorMessage": {
+                "type": "String"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-09-26T13:28:30Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,23 @@
+{
+    "name": "ablob_ADP_CSV_FILES__LARGE",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "AzureBlobStorageSource",
+            "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "container": "csvfilestorage-large"
+            },
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
+        },
+        "schema": []
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

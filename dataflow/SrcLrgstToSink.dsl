@@ -1,0 +1,33 @@
+source(allowSchemaDrift: true,
+	validateSchema: false,
+	ignoreNoFilesFound: false,
+	multiLineRow: true,
+	dateFormats: ['yyyy-MM-dd'],
+	timestampFormats: ['yyyy-MM-dd'],
+	partitionBy('roundRobin', 10)) ~> source1
+source1 derive(each(match(endsWith(name,'_HOURS')), $$ = toInteger(abs($$))),
+		each(match(endsWith(name,'_SALARY')), $$ = toInteger(abs($$))),
+		each(match(endsWith(name,'_PCT')), $$ = toInteger(abs($$))),
+		each(match(endsWith(name,'_POINTS')), $$ = toInteger(abs($$))),
+		each(match(endsWith(name,'_PERCENT')), $$ = toInteger(abs($$))),
+		each(match(endsWith(name,'_RATE')), $$ = toInteger(abs($$))),
+		each(match(endsWith(name,'_TOTAL')), $$ = toInteger(abs($$))),
+	partitionBy('roundRobin', 10)) ~> DerivedColumn1
+DerivedColumn1 sink(allowSchemaDrift: true,
+	validateSchema: false,
+	deletable:false,
+	insertable:true,
+	updateable:false,
+	upsertable:false,
+	truncate:true,
+	format: 'table',
+	stagingSchemaName: 'sysadm',
+	dateFormat:'yyyy-MM-dd',
+	timestampFormat:'yyyy-MM-dd',
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true,
+	errorHandlingOption: 'stopOnFirstError',
+	mapColumn(
+		each(match(true()))
+	),
+	partitionBy('roundRobin', 10)) ~> sink1

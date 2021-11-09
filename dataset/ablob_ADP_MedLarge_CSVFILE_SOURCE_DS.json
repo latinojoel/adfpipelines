@@ -1,0 +1,44 @@
+{
+    "name": "ablob_ADP_MedLarge_CSVFILE_SOURCE_DS",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "AzureBlobStorageSource",
+            "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "container": "csvfilestorage-mediumlarge"
+            },
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
+        },
+        "schema": [
+            {
+                "name": "LOGINID",
+                "type": "String"
+            },
+            {
+                "name": "UPDATE_DTTM",
+                "type": "String"
+            },
+            {
+                "name": "CLIENTTYPE",
+                "type": "String"
+            },
+            {
+                "name": "ACCESSRESULT",
+                "type": "String"
+            },
+            {
+                "name": "EMPLOYEE_OID",
+                "type": "String"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

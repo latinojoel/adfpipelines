@@ -1,0 +1,23 @@
+{
+    "name": "AzureBlobStorageSource",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureBlobStorage",
+        "typeProperties": {
+            "connectionString": "DefaultEndpointsProtocol=https;AccountName=eu1dadfsbsa;EndpointSuffix=core.windows.net;",
+            "accountKey": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                    "referenceName": "ADFKeyvault1",
+                    "type": "LinkedServiceReference"
+                },
+                "secretName": "eu1dadfsbsa-key1"
+            }
+        },
+        "connectVia": {
+            "referenceName": "IR-Azure-Mem-Optimized-32",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

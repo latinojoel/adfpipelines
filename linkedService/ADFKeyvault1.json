@@ -1,0 +1,11 @@
+{
+    "name": "ADFKeyvault1",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureKeyVault",
+        "typeProperties": {
+            "baseUrl": "https://eu1d-adfdev-kv.vault.azure.net/"
+        }
+    }
+}
