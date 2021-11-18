@@ -1,0 +1,9 @@
+{
+	"name": "adfjoellatino",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "9e4f9759-1930-46ea-9060-7d1ba4d73f5c",
+		"tenantId": "0369a9d4-6b51-4f51-ba4d-8ad37cea5f23"
+	}
+}
